@@ -97,34 +97,40 @@ void Extio::extio_power_term()
    }
 
 
+    float read_io_power_term = (power_termination_read + power_bias + power_clk_bias);
+
+    float write_io_power_term = (power_termination_write + power_bias + power_clk_bias);
+   
+    float idle_io_power_term = (power_termination_write + power_bias + power_clk_bias);
+    if (io_param->io_type == DDR4) { 
+        idle_io_power_term = 1e-6*io_param->i_leak*io_param->vdd_io; // IDLE IO power for DDR4 is leakage since bus can be parked at VDDQ
+    }
+
+    float sleep_io_power_term = 1e-6*io_param->i_leak*io_param->vdd_io; //nA to mW
+
 	//Combining the power terms based on STATE (READ/WRITE/IDLE/SLEEP)
 	if (g_ip->iostate == READ)
 	  {
-	    io_power_term = g_ip->duty_cycle * 
-        (power_termination_read + power_bias + power_clk_bias);
+            //printf("termination(read): %f, bias: %f, clk_bias: %f\n",power_termination_read, power_bias, power_clk_bias);
+	    io_power_term = g_ip->duty_cycle * read_io_power_term + (1.0-g_ip->duty_cycle) * idle_io_power_term;
 	  }
 	else if (g_ip->iostate == WRITE)
 	  {
-	    io_power_term = g_ip->duty_cycle * 
-        (power_termination_write + power_bias + power_clk_bias);
+            //printf("termination(write): %f, bias: %f, clk_bias: %f\n",power_termination_write, power_bias, power_clk_bias);
+	    io_power_term = g_ip->duty_cycle * write_io_power_term + (1.0-g_ip->duty_cycle) * idle_io_power_term;
 	  }
 	else if (g_ip->iostate == IDLE)
 	  {
-	    io_power_term = g_ip->duty_cycle * 
-        (power_termination_write + power_bias + power_clk_bias);
-		if (io_param->io_type == DDR4)
-		{ io_power_term = 1e-6*io_param->i_leak*io_param->vdd_io; // IDLE IO power for DDR4 is leakage since bus can be parked at VDDQ
-		}
+	    io_power_term = idle_io_power_term; 
 	  }
 	else if (g_ip->iostate == SLEEP)
 	  {
-	    io_power_term = 1e-6*io_param->i_leak*io_param->vdd_io; //nA to mW
+	    io_power_term = sleep_io_power_term;
 	  }
 	else
 	  {
 	    io_power_term = 0;
 	  }
-
 
 	printf("IO Termination and Bias Power (mW) = ");
 	cout << io_power_term << endl;
@@ -323,24 +329,25 @@ void Extio::extio_power_dynamic()
 
 	//Combining the power terms based on STATE (READ/WRITE/IDLE/SLEEP)
 
-  if (g_ip->iostate == READ) {
-    io_power_dynamic = g_ip->duty_cycle * (power_dq_read + 
-        power_ca_read + power_dqs_read + power_clk);
-       
-  }
-  else if (g_ip->iostate == WRITE) {
-    io_power_dynamic = g_ip->duty_cycle * 
-        (power_dq_write + power_ca_write + power_dqs_write + power_clk);
-  }
-  else if (g_ip->iostate == IDLE) {
-    io_power_dynamic = g_ip->duty_cycle * (power_clk);
-  }
-  else if (g_ip->iostate == SLEEP) {
-    io_power_dynamic = 0;
-  }
-  else {
-    io_power_dynamic = 0;
-  }
+    float read_io_power_dynamic  =  (power_dq_read + power_ca_read + power_dqs_read + power_clk);
+    float write_io_power_dynamic =  (power_dq_write + power_ca_write + power_dqs_write + power_clk);
+    float idle_io_power_dynamic  =  (power_clk);
+
+    if (g_ip->iostate == READ) {
+        io_power_dynamic = g_ip->duty_cycle * read_io_power_dynamic + (1-g_ip->duty_cycle) * idle_io_power_dynamic;
+    }
+    else if (g_ip->iostate == WRITE) {
+        io_power_dynamic = g_ip->duty_cycle * write_io_power_dynamic + (1-g_ip->duty_cycle) * idle_io_power_dynamic;
+    }
+    else if (g_ip->iostate == IDLE) {
+        io_power_dynamic = idle_io_power_dynamic;
+    }
+    else if (g_ip->iostate == SLEEP) {
+        io_power_dynamic = 0;
+    }
+    else {
+        io_power_dynamic = 0;
+    }
 
 
 	printf("IO Dynamic Power (mW) = ");
