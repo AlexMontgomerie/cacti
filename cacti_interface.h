@@ -117,7 +117,8 @@ enum TSV_type
 enum Mem_IO_type
 {
 	DDR3,
-	DDR4,
+	DDR3L,
+        DDR4,
 	LPDDR2,
 	WideIO,
 	Low_Swing_Diff,

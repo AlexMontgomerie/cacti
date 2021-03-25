@@ -703,8 +703,12 @@ InputParameter::parse_cfg(const string & in_file)
     
     if(!strncmp("-dram type", line, strlen("-dram type"))) {
       sscanf(line, "-dram type%[^\"]\"%[^\"]\"", jk, temp_var);
-      if (!strncmp("DDR3", temp_var, strlen("DDR3"))) 
+      if(!strncmp("DDR3L", temp_var, strlen("DDR3L"))) 
       {
+		  io_type = DDR3L;
+      }
+          else if (!strncmp("DDR3", temp_var, strlen("DDR3"))) 
+          {
 		  io_type = DDR3;
 	  }
 	  else if(!strncmp("DDR4", temp_var, strlen("DDR4"))) 
@@ -1150,6 +1154,7 @@ InputParameter::display_ip()
   switch(io_type)
   {
 	  case(DDR3): cout << "DDR3" << endl; break;
+	  case(DDR3L): cout << "DDR3L" << endl; break;
 	  case(DDR4): cout << "DDR4" << endl; break;
 	  case(LPDDR2): cout << "LPDDR2" << endl; break;
 	  case(WideIO): cout << "WideIO" << endl; break;

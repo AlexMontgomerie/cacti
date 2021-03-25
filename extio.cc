@@ -112,16 +112,16 @@ void Extio::extio_power_term()
 	if (g_ip->iostate == READ)
 	  {
             //printf("termination(read): %f, bias: %f, clk_bias: %f\n",power_termination_read, power_bias, power_clk_bias);
-	    io_power_term = g_ip->duty_cycle * read_io_power_term + (1.0-g_ip->duty_cycle) * idle_io_power_term;
+	    io_power_term = g_ip->duty_cycle * read_io_power_term; // + (1.0-g_ip->duty_cycle) * idle_io_power_term;
 	  }
 	else if (g_ip->iostate == WRITE)
 	  {
             //printf("termination(write): %f, bias: %f, clk_bias: %f\n",power_termination_write, power_bias, power_clk_bias);
-	    io_power_term = g_ip->duty_cycle * write_io_power_term + (1.0-g_ip->duty_cycle) * idle_io_power_term;
+	    io_power_term = g_ip->duty_cycle * write_io_power_term; // + (1.0-g_ip->duty_cycle) * idle_io_power_term;
 	  }
 	else if (g_ip->iostate == IDLE)
 	  {
-	    io_power_term = idle_io_power_term; 
+	    io_power_term = g_ip->duty_cycle * idle_io_power_term; 
 	  }
 	else if (g_ip->iostate == SLEEP)
 	  {
@@ -334,13 +334,13 @@ void Extio::extio_power_dynamic()
     float idle_io_power_dynamic  =  (power_clk);
 
     if (g_ip->iostate == READ) {
-        io_power_dynamic = g_ip->duty_cycle * read_io_power_dynamic + (1-g_ip->duty_cycle) * idle_io_power_dynamic;
+        io_power_dynamic = g_ip->duty_cycle * read_io_power_dynamic; // + (1-g_ip->duty_cycle) * idle_io_power_dynamic;
     }
     else if (g_ip->iostate == WRITE) {
-        io_power_dynamic = g_ip->duty_cycle * write_io_power_dynamic + (1-g_ip->duty_cycle) * idle_io_power_dynamic;
+        io_power_dynamic = g_ip->duty_cycle * write_io_power_dynamic; // + (1-g_ip->duty_cycle) * idle_io_power_dynamic;
     }
     else if (g_ip->iostate == IDLE) {
-        io_power_dynamic = idle_io_power_dynamic;
+        io_power_dynamic = g_ip->duty_cycle * idle_io_power_dynamic;
     }
     else if (g_ip->iostate == SLEEP) {
         io_power_dynamic = 0;

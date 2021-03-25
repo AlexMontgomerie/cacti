@@ -246,6 +246,17 @@ int IOTechParam::frequnecy_index(Mem_IO_type type)
 		else
 			return 3;
 	}
+        else if(type==DDR3L)
+	{
+		if(frequency<=400)
+			return 0;
+		else if(frequency<=533)
+			return 1;
+		else if(frequency<=667)
+			return 2;	
+		else
+			return 3;
+	}
 	else if(type==DDR4)
 	{
 		if(frequency<=800)
@@ -535,6 +546,144 @@ IOTechParam::IOTechParam(InputParameter * g_ip)
    { //Default parameters for DDR3
      // IO Supply voltage (V) 
      vdd_io = 1.5;
+     v_sw_clk =  0.75;
+
+     // Loading parameters
+     c_int = 1.5; 
+     c_tx = 2;  
+     c_data = 1.5; 
+     c_addr = 0.75; 
+     i_bias =  15; 
+     i_leak = 1000; 
+
+     // IO Area coefficients
+     ioarea_c = 0.01; 
+     ioarea_k0 = 0.5; 
+     ioarea_k1 = 0.00015; 
+     ioarea_k2 = 0.000000045; 
+     ioarea_k3 = 0.000000000015; 
+
+     // Timing parameters (ps)
+     t_ds = 150;  
+     t_is = 150; 
+     t_dh = 150;
+     t_ih = 150;
+     t_dcd_soc = 50; 
+     t_dcd_dram = 50;
+     t_error_soc = 25; 
+     t_skew_setup = 25; 
+     t_skew_hold = 25; 
+     t_dqsq = 100; 
+     t_soc_setup = 50; 
+     t_soc_hold = 50; 
+     t_jitter_setup = 100; 
+     t_jitter_hold = 100; 
+     t_jitter_addr_setup = 100;
+     t_jitter_addr_hold = 100;
+	t_cor_margin = 30;
+
+
+     //External IO Configuration Parameters 
+
+     r_diff_term = 100;
+     rtt1_dq_read = g_ip->rtt_value; 
+     rtt2_dq_read = g_ip->rtt_value; 
+     rtt1_dq_write = g_ip->rtt_value;
+     rtt2_dq_write = g_ip->rtt_value; 
+     rtt_ca = 50; 
+     rs1_dq = 15; 
+     rs2_dq = 15; 
+     r_stub_ca = 0; 
+     r_on = g_ip->ron_value; 
+     r_on_ca = 50; 
+     z0 = 50;
+     t_flight = g_ip->tflight_value;
+     t_flight_ca = 2;
+
+     // Voltage noise coeffecients
+
+     k_noise_write = 0.2; 
+     k_noise_read = 0.2; 
+     k_noise_addr = 0.2; 
+     v_noise_independent_write = 0.1; 
+     v_noise_independent_read = 0.1; 
+     v_noise_independent_addr = 0.1; 
+
+     //SENSITIVITY INPUTS FOR TIMING AND VOLTAGE NOISE
+
+     /* This is a user-defined section that depends on the channel sensitivity
+      * to IO and DRAM parameters. The t_jitter_* and k_noise_* are the
+      * parameters that are impacted based on the channel analysis. The user
+      * can define any relationship between the termination, loading and
+      * configuration parameters AND the t_jitter/k_noise parameters. E.g. a
+      * linear relationship, a non-linear analytical relationship or a lookup
+      * table. The sensitivity coefficients are based on channel analysis
+      * performed on the channel of interest.Given below is an example of such
+      * a sensitivity relationship.
+      * Such a linear fit can be found efficiently using an orthogonal design 
+      * of experiments method shown in the technical report (), in Chapter 2.2. */
+
+     k_noise_write_sen = k_noise_write * (1 + 0.1*(rtt1_dq_write/60 - 1) +
+         0.2*(rtt2_dq_write/60 - 1) + 0.2*(r_on/34 - 1) +
+         0.2*(g_ip->num_mem_dq/2 - 1));
+
+     k_noise_read_sen = k_noise_read * (1 + 0.1*(rtt1_dq_read/60 - 1) +
+         0.2*(rtt2_dq_read/60 - 1) + 0.2*(r_on/34 - 1) +
+         0.2*(g_ip->num_mem_dq/2 - 1));
+
+     k_noise_addr_sen = k_noise_addr * (1 + 0.1*(rtt_ca/50 - 1) +
+         0.2*(r_on/34 - 1) + 0.2*(num_mem_ca/16 - 1));
+
+
+     t_jitter_setup_sen = t_jitter_setup * (1 + 0.2*(rtt1_dq_write/60 - 1) + 
+         0.3*(rtt2_dq_write/60 - 1) + 0.1*(r_on/34 - 1) + 
+         0.3*(g_ip->num_mem_dq/2 - 1));
+
+     t_jitter_hold_sen = t_jitter_hold * (1 + 0.2*(rtt1_dq_write/60 - 1) + 
+         0.3*(rtt2_dq_write/60 - 1) + 
+         0.1*(r_on/34 - 1) + 0.3*(g_ip->num_mem_dq/2 - 1));
+
+     t_jitter_addr_setup_sen = t_jitter_addr_setup * (1 + 0.2*(rtt_ca/50 - 1) + 
+         0.1*(r_on/34 - 1) + 0.4*(num_mem_ca/16 - 1));
+
+     t_jitter_addr_hold_sen = t_jitter_addr_hold * (1 + 0.2*(rtt_ca/50 - 1) + 
+         0.1*(r_on/34 - 1) + 0.4*(num_mem_ca/16 - 1));
+
+     // PHY Static Power Coefficients (mW)
+     phy_datapath_s = 0; 
+     phy_phase_rotator_s = 10; 
+     phy_clock_tree_s = 0; 
+     phy_rx_s = 10; 
+     phy_dcc_s = 0; 
+     phy_deskew_s = 0; 
+     phy_leveling_s = 0; 
+     phy_pll_s = 10; 
+
+     // PHY Dynamic Power Coefficients (mW/Gbps)
+     phy_datapath_d = 0.5; 
+     phy_phase_rotator_d = 0.01; 
+     phy_clock_tree_d = 0.5; 
+     phy_rx_d = 0.5; 
+     phy_dcc_d = 0.05; 
+     phy_deskew_d = 0.1; 
+     phy_leveling_d = 0.05; 
+     phy_pll_d = 0.05; 
+
+	//PHY Wakeup Times (Sleep to Active) (microseconds)
+
+	phy_pll_wtime = 10;
+	phy_phase_rotator_wtime = 5;
+	phy_rx_wtime = 2;
+	phy_bandgap_wtime = 10;
+	phy_deskew_wtime = 0.003;
+	phy_vrefgen_wtime = 0.5;
+
+
+   }
+   else if (g_ip->io_type == DDR3L)
+   { //Default parameters for DDR3
+     // IO Supply voltage (V) 
+     vdd_io = 1.35;
      v_sw_clk =  0.75;
 
      // Loading parameters
@@ -1347,6 +1496,173 @@ IOTechParam::IOTechParam(InputParameter * g_ip, Mem_IO_type io_type1, int num_me
 
 
    }
+   else if (io_type == DDR3L)
+   { //Default parameters for DDR3
+     // IO Supply voltage (V) 
+     vdd_io = 1.35;
+     v_sw_clk =  0.75;
+
+     // Loading parameters
+     c_int = 1.5; 
+     c_tx = 2;  
+     c_data = 1.5; 
+     c_addr = 0.75; 
+     i_bias =  15; 
+     i_leak = 1000; 
+
+     // IO Area coefficients
+     ioarea_c = 0.01; 
+     ioarea_k0 = 0.5; 
+     ioarea_k1 = 0.00015; 
+     ioarea_k2 = 0.000000045; 
+     ioarea_k3 = 0.000000000015; 
+
+     // Timing parameters (ps)
+     t_ds = 150;  
+     t_is = 150; 
+     t_dh = 150;
+     t_ih = 150;
+     t_dcd_soc = 50; 
+     t_dcd_dram = 50;
+     t_error_soc = 25; 
+     t_skew_setup = 25; 
+     t_skew_hold = 25; 
+     t_dqsq = 100; 
+     t_soc_setup = 50; 
+     t_soc_hold = 50; 
+     t_jitter_setup = 100; 
+     t_jitter_hold = 100; 
+     t_jitter_addr_setup = 100;
+     t_jitter_addr_hold = 100;
+	t_cor_margin = 30;
+
+
+     //External IO Configuration Parameters 
+
+     r_diff_term = 100;
+     
+     /*
+     rtt1_dq_read = g_ip->rtt_value; 
+     rtt2_dq_read = g_ip->rtt_value; 
+     rtt1_dq_write = g_ip->rtt_value;
+     rtt2_dq_write = g_ip->rtt_value;
+     */
+     switch(connection)
+     {
+		 case(0):
+			rtt1_dq_write = rtt1_wr_bob_dimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			rtt2_dq_write = rtt2_wr_bob_dimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			rtt1_dq_read = rtt1_rd_bob_dimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			rtt2_dq_read = rtt2_rd_bob_dimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			break;
+		 case(1):
+			rtt1_dq_write = rtt1_wr_host_dimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			rtt2_dq_write = rtt2_wr_host_dimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			rtt1_dq_read = rtt1_rd_host_dimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			rtt2_dq_read = rtt2_rd_host_dimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			break;
+		 case(2):
+			rtt1_dq_write = rtt1_wr_lrdimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			rtt2_dq_write = rtt2_wr_lrdimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			rtt1_dq_read = rtt1_rd_lrdimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			rtt2_dq_read = rtt2_rd_lrdimm_ddr3[num_loads-1][frequnecy_index(io_type)];
+			break;
+		default:
+			break;
+	 }
+     
+      
+     rtt_ca = 50; 
+     rs1_dq = 15; 
+     rs2_dq = 15; 
+     r_stub_ca = 0; 
+     r_on = g_ip->ron_value; 
+     r_on_ca = 50; 
+     z0 = 50;
+     t_flight = g_ip->tflight_value;
+     t_flight_ca = 2;
+
+     // Voltage noise coeffecients
+
+     k_noise_write = 0.2; 
+     k_noise_read = 0.2; 
+     k_noise_addr = 0.2; 
+     v_noise_independent_write = 0.1; 
+     v_noise_independent_read = 0.1; 
+     v_noise_independent_addr = 0.1; 
+
+     //SENSITIVITY INPUTS FOR TIMING AND VOLTAGE NOISE
+
+     /* This is a user-defined section that depends on the channel sensitivity
+      * to IO and DRAM parameters. The t_jitter_* and k_noise_* are the
+      * parameters that are impacted based on the channel analysis. The user
+      * can define any relationship between the termination, loading and
+      * configuration parameters AND the t_jitter/k_noise parameters. E.g. a
+      * linear relationship, a non-linear analytical relationship or a lookup
+      * table. The sensitivity coefficients are based on channel analysis
+      * performed on the channel of interest.Given below is an example of such
+      * a sensitivity relationship.
+      * Such a linear fit can be found efficiently using an orthogonal design 
+      * of experiments method shown in the technical report (), in Chapter 2.2. */
+
+     k_noise_write_sen = k_noise_write * (1 + 0.1*(rtt1_dq_write/60 - 1) +
+         0.2*(rtt2_dq_write/60 - 1) + 0.2*(r_on/34 - 1) +
+         0.2*(num_mem_dq/2 - 1));
+
+     k_noise_read_sen = k_noise_read * (1 + 0.1*(rtt1_dq_read/60 - 1) +
+         0.2*(rtt2_dq_read/60 - 1) + 0.2*(r_on/34 - 1) +
+         0.2*(num_mem_dq/2 - 1));
+
+     k_noise_addr_sen = k_noise_addr * (1 + 0.1*(rtt_ca/50 - 1) +
+         0.2*(r_on/34 - 1) + 0.2*(num_mem_ca/16 - 1));
+
+
+     t_jitter_setup_sen = t_jitter_setup * (1 + 0.2*(rtt1_dq_write/60 - 1) + 
+         0.3*(rtt2_dq_write/60 - 1) + 0.1*(r_on/34 - 1) + 
+         0.3*(num_mem_dq/2 - 1));
+
+     t_jitter_hold_sen = t_jitter_hold * (1 + 0.2*(rtt1_dq_write/60 - 1) + 
+         0.3*(rtt2_dq_write/60 - 1) + 
+         0.1*(r_on/34 - 1) + 0.3*(num_mem_dq/2 - 1));
+
+     t_jitter_addr_setup_sen = t_jitter_addr_setup * (1 + 0.2*(rtt_ca/50 - 1) + 
+         0.1*(r_on/34 - 1) + 0.4*(num_mem_ca/16 - 1));
+
+     t_jitter_addr_hold_sen = t_jitter_addr_hold * (1 + 0.2*(rtt_ca/50 - 1) + 
+         0.1*(r_on/34 - 1) + 0.4*(num_mem_ca/16 - 1));
+
+     // PHY Static Power Coefficients (mW)
+     phy_datapath_s = 0; 
+     phy_phase_rotator_s = 10; 
+     phy_clock_tree_s = 0; 
+     phy_rx_s = 10; 
+     phy_dcc_s = 0; 
+     phy_deskew_s = 0; 
+     phy_leveling_s = 0; 
+     phy_pll_s = 10; 
+
+     // PHY Dynamic Power Coefficients (mW/Gbps)
+     phy_datapath_d = 0.5; 
+     phy_phase_rotator_d = 0.01; 
+     phy_clock_tree_d = 0.5; 
+     phy_rx_d = 0.5; 
+     phy_dcc_d = 0.05; 
+     phy_deskew_d = 0.1; 
+     phy_leveling_d = 0.05; 
+     phy_pll_d = 0.05; 
+
+	//PHY Wakeup Times (Sleep to Active) (microseconds)
+
+	phy_pll_wtime = 10;
+	phy_phase_rotator_wtime = 5;
+	phy_rx_wtime = 2;
+	phy_bandgap_wtime = 10;
+	phy_deskew_wtime = 0.003;
+	phy_vrefgen_wtime = 0.5;
+
+
+   }
+
    else if (io_type == DDR4)
    { //Default parameters for DDR4
      // IO Supply voltage (V) 
